@@ -26,6 +26,8 @@ public class AddressBook {
             System.out.println("1. Add Contact");
             System.out.println("2. List Contacts");
             System.out.println("3. Exit");
+            System.out.println("4. Delete Contact");
+            System.out.println("5. Search Contact");
             System.out.print("Choose: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // clear newline
@@ -36,7 +38,14 @@ public class AddressBook {
                 listContacts();
             } else if (choice == 3) {
                 break;
-            } else {
+            }
+              else if (choice == 4) {
+              deleteContact();
+            } else if (choice == 5) {
+            searchContact();
+            }
+
+             else {
                 System.out.println("Invalid option!");
             }
         }
@@ -91,6 +100,50 @@ public class AddressBook {
         System.out.println("Error loading contacts: " + e.getMessage());
     }
 }
+static void deleteContact() {
+    System.out.print("Enter name to delete: ");
+    String nameToDelete = scanner.nextLine();
+    boolean removed = contacts.removeIf(c -> c.name.equalsIgnoreCase(nameToDelete));
+
+    if (removed) {
+        System.out.println("Contact deleted!");
+        saveAllContacts(); // Rewrite entire file
+    } else {
+        System.out.println("Contact not found.");
+    }
+}
+
+static void searchContact() {
+    System.out.print("Enter name to search: ");
+    String nameToSearch = scanner.nextLine();
+    boolean found = false;
+    for (Contact c : contacts) {
+        if (c.name.equalsIgnoreCase(nameToSearch)) {
+            System.out.println(c.name + " | " + c.phone + " | " + c.email);
+            found = true;
+        }
+    }
+    if (!found) {
+        System.out.println("Contact not found.");
+    }
+}
+static void saveAllContacts() {
+    try {
+        FileWriter fw = new FileWriter(FILE_NAME, false); // false = overwrite
+        for (Contact c : contacts) {
+            fw.write(c.name + "," + c.phone + "," + c.email + "\n");
+        }
+        fw.close();
+    } catch (IOException e) {
+        System.out.println("Error saving contacts: " + e.getMessage());
+    }
+}
+
+
+
+
+
+
 
 }
 
