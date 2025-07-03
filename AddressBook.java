@@ -28,6 +28,7 @@ public class AddressBook {
             System.out.println("3. Exit");
             System.out.println("4. Delete Contact");
             System.out.println("5. Search Contact");
+            System.out.println("6. Edit Contact");
             System.out.print("Choose: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // clear newline
@@ -44,6 +45,10 @@ public class AddressBook {
             } else if (choice == 5) {
             searchContact();
             }
+            else if (choice == 6) {
+            editContact();
+            }
+
 
              else {
                 System.out.println("Invalid option!");
@@ -136,6 +141,36 @@ static void saveAllContacts() {
         fw.close();
     } catch (IOException e) {
         System.out.println("Error saving contacts: " + e.getMessage());
+    }
+}
+static void editContact() {
+    System.out.print("Enter name to edit: ");
+    String nameToEdit = scanner.nextLine();
+    boolean found = false;
+
+    for (Contact c : contacts) {
+        if (c.name.equalsIgnoreCase(nameToEdit)) {
+            System.out.print("New phone (enter to skip): ");
+            String newPhone = scanner.nextLine();
+            if (!newPhone.isEmpty()) {
+                c.phone = newPhone;
+            }
+
+            System.out.print("New email (enter to skip): ");
+            String newEmail = scanner.nextLine();
+            if (!newEmail.isEmpty()) {
+                c.email = newEmail;
+            }
+
+            found = true;
+            saveAllContacts();
+            System.out.println("Contact updated!");
+            break;
+        }
+    }
+
+    if (!found) {
+        System.out.println("Contact not found.");
     }
 }
 
