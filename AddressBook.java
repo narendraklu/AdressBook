@@ -19,6 +19,7 @@ public class AddressBook {
             System.out.println("4. Delete Contact");
             System.out.println("5. Search Contact");
             System.out.println("6. Edit Contact");
+            System.out.println("7. Export Contacts");
             System.out.print("Choose an option: ");
 
             int choice = scanner.nextInt();
@@ -36,6 +37,8 @@ public class AddressBook {
                 searchContact();
             } else if (choice == 6) {
                 editContact();
+            } else if (choice == 7) {
+                exportContacts();
             } else {
                 System.out.println("Invalid option!");
             }
@@ -154,6 +157,20 @@ public class AddressBook {
 
         if (!found) {
             System.out.println("Contact not found.");
+        }
+    }
+
+    static void exportContacts() {
+        try {
+            FileWriter fw = new FileWriter("exported_contacts.csv", false); // overwrite
+            fw.write("Name,Phone,Email,CreatedAt\n"); // header
+            for (Contact c : contacts) {
+                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "\n");
+            }
+            fw.close();
+            System.out.println("Contacts exported successfully to exported_contacts.csv!");
+        } catch (IOException e) {
+            System.out.println("Error exporting contacts: " + e.getMessage());
         }
     }
 }
