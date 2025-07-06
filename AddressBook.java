@@ -20,6 +20,7 @@ public class AddressBook {
             System.out.println("5. Search Contact");
             System.out.println("6. Edit Contact");
             System.out.println("7. Export Contacts");
+            System.out.println("8. Import Contacts");
             System.out.print("Choose an option: ");
 
             int choice = scanner.nextInt();
@@ -39,7 +40,12 @@ public class AddressBook {
                 editContact();
             } else if (choice == 7) {
                 exportContacts();
-            } else {
+            }else if (choice == 8) {
+              importContacts();
+            }
+
+            
+            else {
                 System.out.println("Invalid option!");
             }
         }
@@ -173,6 +179,37 @@ public class AddressBook {
             System.out.println("Error exporting contacts: " + e.getMessage());
         }
     }
+    static void importContacts() {
+    try {
+        File file = new File("import_contacts.csv");
+        if (!file.exists()) {
+            System.out.println("import_contacts.csv not found!");
+            return;
+        }
+
+        Scanner fileScanner = new Scanner(file);
+        // Skip header if present
+        if (fileScanner.hasNextLine()) {
+            fileScanner.nextLine();
+        }
+
+        while (fileScanner.hasNextLine()) {
+            String line = fileScanner.nextLine();
+            String[] parts = line.split(",");
+            if (parts.length == 4) {
+                Contact c = new Contact(parts[0], parts[1], parts[2]);
+                c.createdAt = LocalDateTime.parse(parts[3]);
+                contacts.add(c);
+            }
+        }
+        fileScanner.close();
+        saveAllContacts();
+        System.out.println("Contacts imported successfully!");
+    } catch (IOException e) {
+        System.out.println("Error importing contacts: " + e.getMessage());
+    }
+}
+
 }
 
 class Contact {
