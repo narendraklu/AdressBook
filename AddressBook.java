@@ -21,6 +21,8 @@ public class AddressBook {
             System.out.println("6. Edit Contact");
             System.out.println("7. Export Contacts");
             System.out.println("8. Import Contacts");
+            System.out.println("9. Backup Contacts");
+            System.out.println("10. Restore Contacts from Backup");
             System.out.print("Choose an option: ");
 
             int choice = scanner.nextInt();
@@ -40,12 +42,13 @@ public class AddressBook {
                 editContact();
             } else if (choice == 7) {
                 exportContacts();
-            }else if (choice == 8) {
-              importContacts();
-            }
-
-            
-            else {
+            } else if (choice == 8) {
+                importContacts();
+            } else if (choice == 9) {
+                backupContacts();
+            } else if (choice == 10) {
+                restoreContacts();
+            } else {
                 System.out.println("Invalid option!");
             }
         }
@@ -169,7 +172,7 @@ public class AddressBook {
     static void exportContacts() {
         try {
             FileWriter fw = new FileWriter("exported_contacts.csv", false); // overwrite
-            fw.write("Name,Phone,Email,CreatedAt\n"); // header
+            fw.write("Name,Phone,Email,CreatedAt\n");
             for (Contact c : contacts) {
                 fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "\n");
             }
@@ -179,37 +182,86 @@ public class AddressBook {
             System.out.println("Error exporting contacts: " + e.getMessage());
         }
     }
+
     static void importContacts() {
-    try {
-        File file = new File("import_contacts.csv");
-        if (!file.exists()) {
-            System.out.println("import_contacts.csv not found!");
-            return;
-        }
-
-        Scanner fileScanner = new Scanner(file);
-        // Skip header if present
-        if (fileScanner.hasNextLine()) {
-            fileScanner.nextLine();
-        }
-
-        while (fileScanner.hasNextLine()) {
-            String line = fileScanner.nextLine();
-            String[] parts = line.split(",");
-            if (parts.length == 4) {
-                Contact c = new Contact(parts[0], parts[1], parts[2]);
-                c.createdAt = LocalDateTime.parse(parts[3]);
-                contacts.add(c);
+        try {
+            File file = new File("import_contacts.csv");
+            if (!file.exists()) {
+                System.out.println("import_contacts.csv not found!");
+                return;
             }
-        }
-        fileScanner.close();
-        saveAllContacts();
-        System.out.println("Contacts imported successfully!");
-    } catch (IOException e) {
-        System.out.println("Error importing contacts: " + e.getMessage());
-    }
-}
 
+            Scanner fileScanner = new Scanner(file);
+            if (fileScanner.hasNextLine()) {
+                fileScanner.nextLine(); // skip header
+            }
+
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                String[] parts = line.split(",");
+                if (parts.length == 4) {
+                    Contact c = new Contact(parts[0], parts[1], parts[2]);
+                    c.createdAt = LocalDateTime.parse(parts[3]);
+                    contacts.add(c);
+                }
+            }
+            fileScanner.close();
+            saveAllContacts();
+            System.out.println("Contacts imported successfully!");
+        } catch (IOException e) {
+            System.out.println("Error importing contacts: " + e.getMessage());
+        }
+    }
+
+    static void backupContacts() {
+        try {
+            File original = new File(FILE_NAME);
+            File backup = new File("contacts_backup.txt");
+
+            Scanner scannerFile = new Scanner(original);
+            FileWriter fw = new FileWriter(backup, false);
+
+            while (scannerFile.hasNextLine()) {
+                String line = scannerFile.nextLine();
+                fw.write(line + "\n");
+            }
+
+            scannerFile.close();
+            fw.close();
+            System.out.println("Backup created successfully as contacts_backup.txt!");
+        } catch (IOException e) {
+            System.out.println("Error backing up contacts: " + e.getMessage());
+        }
+    }
+
+    static void restoreContacts() {
+        try {
+            File backup = new File("contacts_backup.txt");
+            File original = new File(FILE_NAME);
+
+            if (!backup.exists()) {
+                System.out.println("Backup file does not exist!");
+                return;
+            }
+
+            Scanner scannerFile = new Scanner(backup);
+            FileWriter fw = new FileWriter(original, false);
+
+            while (scannerFile.hasNextLine()) {
+                String line = scannerFile.nextLine();
+                fw.write(line + "\n");
+            }
+
+            scannerFile.close();
+            fw.close();
+
+            contacts.clear();
+            loadContacts();
+            System.out.println("Contacts restored from backup successfully!");
+        } catch (IOException e) {
+            System.out.println("Error restoring contacts: " + e.getMessage());
+        }
+    }
 }
 
 class Contact {
