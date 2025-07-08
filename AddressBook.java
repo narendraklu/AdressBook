@@ -23,6 +23,8 @@ public class AddressBook {
             System.out.println("8. Import Contacts");
             System.out.println("9. Backup Contacts");
             System.out.println("10. Restore Contacts from Backup");
+            System.out.println("11. Mark/Unmark Favorite");
+            System.out.println("12. List Only Favorite Contacts");
             System.out.print("Choose an option: ");
 
             int choice = scanner.nextInt();
@@ -48,6 +50,10 @@ public class AddressBook {
                 backupContacts();
             } else if (choice == 10) {
                 restoreContacts();
+            } else if (choice == 11) {
+                toggleFavorite();
+            } else if (choice == 12) {
+                listFavorites();
             } else {
                 System.out.println("Invalid option!");
             }
@@ -70,7 +76,8 @@ public class AddressBook {
 
     static void listContacts() {
         for (Contact c : contacts) {
-            System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Added on: " + c.createdAt);
+            String favMark = c.isFavorite ? "⭐" : "";
+            System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Added on: " + c.createdAt + " " + favMark);
         }
     }
 
@@ -86,9 +93,10 @@ public class AddressBook {
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
                 String[] parts = line.split(",");
-                if (parts.length == 4) {
+                if (parts.length == 5) {
                     Contact c = new Contact(parts[0], parts[1], parts[2]);
                     c.createdAt = LocalDateTime.parse(parts[3]);
+                    c.isFavorite = Boolean.parseBoolean(parts[4]);
                     contacts.add(c);
                 }
             }
@@ -100,9 +108,9 @@ public class AddressBook {
 
     static void saveAllContacts() {
         try {
-            FileWriter fw = new FileWriter(FILE_NAME, false); // overwrite
+            FileWriter fw = new FileWriter(FILE_NAME, false);
             for (Contact c : contacts) {
-                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "\n");
+                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + "\n");
             }
             fw.close();
         } catch (IOException e) {
@@ -129,7 +137,8 @@ public class AddressBook {
         boolean found = false;
         for (Contact c : contacts) {
             if (c.name.equalsIgnoreCase(nameToSearch)) {
-                System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Added on: " + c.createdAt);
+                String favMark = c.isFavorite ? "⭐" : "";
+                System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Added on: " + c.createdAt + " " + favMark);
                 found = true;
             }
         }
@@ -171,10 +180,10 @@ public class AddressBook {
 
     static void exportContacts() {
         try {
-            FileWriter fw = new FileWriter("exported_contacts.csv", false); // overwrite
-            fw.write("Name,Phone,Email,CreatedAt\n");
+            FileWriter fw = new FileWriter("exported_contacts.csv", false);
+            fw.write("Name,Phone,Email,CreatedAt,IsFavorite\n");
             for (Contact c : contacts) {
-                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "\n");
+                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + "\n");
             }
             fw.close();
             System.out.println("Contacts exported successfully to exported_contacts.csv!");
@@ -199,9 +208,10 @@ public class AddressBook {
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
                 String[] parts = line.split(",");
-                if (parts.length == 4) {
+                if (parts.length == 5) {
                     Contact c = new Contact(parts[0], parts[1], parts[2]);
                     c.createdAt = LocalDateTime.parse(parts[3]);
+                    c.isFavorite = Boolean.parseBoolean(parts[4]);
                     contacts.add(c);
                 }
             }
@@ -262,6 +272,40 @@ public class AddressBook {
             System.out.println("Error restoring contacts: " + e.getMessage());
         }
     }
+
+    static void toggleFavorite() {
+        System.out.print("Enter name to mark/unmark favorite: ");
+        String nameToToggle = scanner.nextLine();
+        boolean found = false;
+
+        for (Contact c : contacts) {
+            if (c.name.equalsIgnoreCase(nameToToggle)) {
+                c.isFavorite = !c.isFavorite;
+                String status = c.isFavorite ? "marked as favorite ⭐" : "removed from favorites";
+                System.out.println("Contact " + status + "!");
+                found = true;
+                saveAllContacts();
+                break;
+            }
+        }
+
+        if (!found) {
+            System.out.println("Contact not found.");
+        }
+    }
+
+    static void listFavorites() {
+        boolean anyFavorite = false;
+        for (Contact c : contacts) {
+            if (c.isFavorite) {
+                System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Added on: " + c.createdAt + " | ⭐");
+                anyFavorite = true;
+            }
+        }
+        if (!anyFavorite) {
+            System.out.println("No favorite contacts yet!");
+        }
+    }
 }
 
 class Contact {
@@ -269,11 +313,13 @@ class Contact {
     String phone;
     String email;
     LocalDateTime createdAt;
+    boolean isFavorite;
 
     Contact(String name, String phone, String email) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.createdAt = LocalDateTime.now();
+        this.isFavorite = false;
     }
 }
