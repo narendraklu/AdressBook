@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class AddressBook {
@@ -25,6 +26,7 @@ public class AddressBook {
             System.out.println("10. Restore Contacts from Backup");
             System.out.println("11. Mark/Unmark Favorite");
             System.out.println("12. List Only Favorite Contacts");
+            System.out.println("13. Show Upcoming Birthdays");
             System.out.print("Choose an option: ");
 
             int choice = scanner.nextInt();
@@ -54,6 +56,8 @@ public class AddressBook {
                 toggleFavorite();
             } else if (choice == 12) {
                 listFavorites();
+            } else if (choice == 13) {
+                listUpcomingBirthdays();
             } else {
                 System.out.println("Invalid option!");
             }
@@ -67,17 +71,20 @@ public class AddressBook {
         String phone = scanner.nextLine();
         System.out.print("Email: ");
         String email = scanner.nextLine();
+        System.out.print("Birthday (yyyy-mm-dd): ");
+        String birthdayStr = scanner.nextLine();
+        LocalDate birthday = LocalDate.parse(birthdayStr);
 
-        contacts.add(new Contact(name, phone, email));
+        contacts.add(new Contact(name, phone, email, birthday));
         System.out.println("Contact added!");
-
         saveAllContacts();
     }
 
     static void listContacts() {
         for (Contact c : contacts) {
             String favMark = c.isFavorite ? "⭐" : "";
-            System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Added on: " + c.createdAt + " " + favMark);
+            System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Birthday: " + c.birthday
+                    + " | Added on: " + c.createdAt + " " + favMark);
         }
     }
 
@@ -93,8 +100,8 @@ public class AddressBook {
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
                 String[] parts = line.split(",");
-                if (parts.length == 5) {
-                    Contact c = new Contact(parts[0], parts[1], parts[2]);
+                if (parts.length == 6) {
+                    Contact c = new Contact(parts[0], parts[1], parts[2], LocalDate.parse(parts[5]));
                     c.createdAt = LocalDateTime.parse(parts[3]);
                     c.isFavorite = Boolean.parseBoolean(parts[4]);
                     contacts.add(c);
@@ -110,7 +117,8 @@ public class AddressBook {
         try {
             FileWriter fw = new FileWriter(FILE_NAME, false);
             for (Contact c : contacts) {
-                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + "\n");
+                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + ","
+                        + c.birthday + "\n");
             }
             fw.close();
         } catch (IOException e) {
@@ -138,7 +146,8 @@ public class AddressBook {
         for (Contact c : contacts) {
             if (c.name.equalsIgnoreCase(nameToSearch)) {
                 String favMark = c.isFavorite ? "⭐" : "";
-                System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Added on: " + c.createdAt + " " + favMark);
+                System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Birthday: " + c.birthday
+                        + " | Added on: " + c.createdAt + " " + favMark);
                 found = true;
             }
         }
@@ -166,6 +175,12 @@ public class AddressBook {
                     c.email = newEmail;
                 }
 
+                System.out.print("New birthday (yyyy-mm-dd, enter to skip): ");
+                String newBirthdayStr = scanner.nextLine();
+                if (!newBirthdayStr.isEmpty()) {
+                    c.birthday = LocalDate.parse(newBirthdayStr);
+                }
+
                 found = true;
                 saveAllContacts();
                 System.out.println("Contact updated!");
@@ -181,9 +196,10 @@ public class AddressBook {
     static void exportContacts() {
         try {
             FileWriter fw = new FileWriter("exported_contacts.csv", false);
-            fw.write("Name,Phone,Email,CreatedAt,IsFavorite\n");
+            fw.write("Name,Phone,Email,CreatedAt,IsFavorite,Birthday\n");
             for (Contact c : contacts) {
-                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + "\n");
+                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + ","
+                        + c.birthday + "\n");
             }
             fw.close();
             System.out.println("Contacts exported successfully to exported_contacts.csv!");
@@ -208,8 +224,8 @@ public class AddressBook {
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
                 String[] parts = line.split(",");
-                if (parts.length == 5) {
-                    Contact c = new Contact(parts[0], parts[1], parts[2]);
+                if (parts.length == 6) {
+                    Contact c = new Contact(parts[0], parts[1], parts[2], LocalDate.parse(parts[5]));
                     c.createdAt = LocalDateTime.parse(parts[3]);
                     c.isFavorite = Boolean.parseBoolean(parts[4]);
                     contacts.add(c);
@@ -298,12 +314,33 @@ public class AddressBook {
         boolean anyFavorite = false;
         for (Contact c : contacts) {
             if (c.isFavorite) {
-                System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Added on: " + c.createdAt + " | ⭐");
+                System.out.println(c.name + " | " + c.phone + " | " + c.email + " | Birthday: " + c.birthday
+                        + " | Added on: " + c.createdAt + " | ⭐");
                 anyFavorite = true;
             }
         }
         if (!anyFavorite) {
             System.out.println("No favorite contacts yet!");
+        }
+    }
+
+    static void listUpcomingBirthdays() {
+        LocalDate today = LocalDate.now();
+        LocalDate thirtyDaysLater = today.plusDays(30);
+        boolean found = false;
+
+        for (Contact c : contacts) {
+            if (c.birthday != null) {
+                LocalDate thisYearBirthday = c.birthday.withYear(today.getYear());
+                if (!thisYearBirthday.isBefore(today) && !thisYearBirthday.isAfter(thirtyDaysLater)) {
+                    System.out.println(c.name + " | Birthday: " + c.birthday);
+                    found = true;
+                }
+            }
+        }
+
+        if (!found) {
+            System.out.println("No upcoming birthdays in the next 30 days!");
         }
     }
 }
@@ -314,12 +351,14 @@ class Contact {
     String email;
     LocalDateTime createdAt;
     boolean isFavorite;
+    LocalDate birthday;
 
-    Contact(String name, String phone, String email) {
+    Contact(String name, String phone, String email, LocalDate birthday) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.createdAt = LocalDateTime.now();
         this.isFavorite = false;
+        this.birthday = birthday;
     }
 }
