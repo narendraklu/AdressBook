@@ -33,25 +33,42 @@ public class AddressBook {
             System.out.println("11. Mark/Unmark Favorite");
             System.out.println("12. List Favorite Contacts");
             System.out.println("13. Upcoming Birthdays");
+            System.out.println("14. Change Password");
 
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
             scanner.nextLine();
 
-            if (choice == 1) addContact();
-            else if (choice == 2) listContacts();
-            else if (choice == 3) break;
-            else if (choice == 4) deleteContact();
-            else if (choice == 5) searchContact();
-            else if (choice == 6) editContact();
-            else if (choice == 7) exportContacts();
-            else if (choice == 8) importContacts();
-            else if (choice == 9) backupContacts();
-            else if (choice == 10) restoreContacts();
-            else if (choice == 11) toggleFavorite();
-            else if (choice == 12) listFavorites();
-            else if (choice == 13) listUpcomingBirthdays();
-            else System.out.println("❌ Invalid option.");
+            if (choice == 1)
+                addContact();
+            else if (choice == 2)
+                listContacts();
+            else if (choice == 3)
+                break;
+            else if (choice == 4)
+                deleteContact();
+            else if (choice == 5)
+                searchContact();
+            else if (choice == 6)
+                editContact();
+            else if (choice == 7)
+                exportContacts();
+            else if (choice == 8)
+                importContacts();
+            else if (choice == 9)
+                backupContacts();
+            else if (choice == 10)
+                restoreContacts();
+            else if (choice == 11)
+                toggleFavorite();
+            else if (choice == 12)
+                listFavorites();
+            else if (choice == 13)
+                listUpcomingBirthdays();
+            else if (choice == 14)
+                changePassword();
+            else
+                System.out.println("❌ Invalid option.");
         }
     }
 
@@ -77,7 +94,13 @@ public class AddressBook {
             String entered = scanner.nextLine();
             String enteredHash = hashPassword(entered);
 
-            return storedHash.equals(enteredHash);
+            if (storedHash.equals(enteredHash)) {
+                System.out.println("✅ Access granted.");
+                return true;
+            } else {
+                System.out.println("❌ Incorrect password!");
+                return false;
+            }
         } catch (IOException e) {
             System.out.println("⚠️ Error: " + e.getMessage());
             return false;
@@ -94,6 +117,47 @@ public class AddressBook {
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    static void changePassword() {
+        try {
+            File file = new File("password.txt");
+            if (!file.exists()) {
+                System.out.println("⚠️ Password file missing. Cannot change password.");
+                return;
+            }
+
+            Scanner fileScanner = new Scanner(file);
+            String storedHash = fileScanner.nextLine();
+            fileScanner.close();
+
+            System.out.print("Enter current password: ");
+            String oldPass = scanner.nextLine();
+            String oldHash = hashPassword(oldPass);
+
+            if (!storedHash.equals(oldHash)) {
+                System.out.println("❌ Incorrect current password. Password not changed.");
+                return;
+            }
+
+            System.out.print("Enter new password: ");
+            String newPass = scanner.nextLine();
+            System.out.print("Confirm new password: ");
+            String confirmPass = scanner.nextLine();
+
+            if (!newPass.equals(confirmPass)) {
+                System.out.println("❌ Passwords do not match. Try again.");
+                return;
+            }
+
+            String newHash = hashPassword(newPass);
+            FileWriter fw = new FileWriter(file, false);
+            fw.write(newHash);
+            fw.close();
+            System.out.println("✅ Password changed successfully!");
+        } catch (IOException e) {
+            System.out.println("⚠️ Error changing password: " + e.getMessage());
         }
     }
 
@@ -115,7 +179,8 @@ public class AddressBook {
     static void listContacts() {
         for (Contact c : contacts) {
             String fav = c.isFavorite ? "⭐" : "";
-            System.out.println(c.name + " | " + c.phone + " | " + c.email + " | " + c.birthday + " | " + c.createdAt + " " + fav);
+            System.out.println(
+                    c.name + " | " + c.phone + " | " + c.email + " | " + c.birthday + " | " + c.createdAt + " " + fav);
         }
     }
 
@@ -126,7 +191,8 @@ public class AddressBook {
         if (removed) {
             saveAllContacts();
             System.out.println("✅ Contact deleted.");
-        } else System.out.println("❌ Contact not found.");
+        } else
+            System.out.println("❌ Contact not found.");
     }
 
     static void searchContact() {
@@ -135,11 +201,13 @@ public class AddressBook {
         boolean found = false;
         for (Contact c : contacts) {
             if (c.name.equalsIgnoreCase(name)) {
-                System.out.println(c.name + " | " + c.phone + " | " + c.email + " | " + c.birthday + " | " + c.createdAt);
+                System.out
+                        .println(c.name + " | " + c.phone + " | " + c.email + " | " + c.birthday + " | " + c.createdAt);
                 found = true;
             }
         }
-        if (!found) System.out.println("❌ Not found.");
+        if (!found)
+            System.out.println("❌ Not found.");
     }
 
     static void editContact() {
@@ -149,15 +217,18 @@ public class AddressBook {
             if (c.name.equalsIgnoreCase(name)) {
                 System.out.print("New phone (enter to skip): ");
                 String phone = scanner.nextLine();
-                if (!phone.isEmpty()) c.phone = phone;
+                if (!phone.isEmpty())
+                    c.phone = phone;
 
                 System.out.print("New email (enter to skip): ");
                 String email = scanner.nextLine();
-                if (!email.isEmpty()) c.email = email;
+                if (!email.isEmpty())
+                    c.email = email;
 
                 System.out.print("New birthday (yyyy-mm-dd, skip if blank): ");
                 String bday = scanner.nextLine();
-                if (!bday.isEmpty()) c.birthday = LocalDate.parse(bday);
+                if (!bday.isEmpty())
+                    c.birthday = LocalDate.parse(bday);
 
                 saveAllContacts();
                 System.out.println("✅ Contact updated.");
@@ -189,7 +260,8 @@ public class AddressBook {
                 found = true;
             }
         }
-        if (!found) System.out.println("😢 No favorites yet.");
+        if (!found)
+            System.out.println("😢 No favorites yet.");
     }
 
     static void listUpcomingBirthdays() {
@@ -205,7 +277,8 @@ public class AddressBook {
                 }
             }
         }
-        if (!found) System.out.println("🎉 No upcoming birthdays!");
+        if (!found)
+            System.out.println("🎉 No upcoming birthdays!");
     }
 
     static void importContacts() {
@@ -217,7 +290,8 @@ public class AddressBook {
 
         try {
             Scanner sc = new Scanner(file);
-            if (sc.hasNextLine()) sc.nextLine(); // skip header
+            if (sc.hasNextLine())
+                sc.nextLine();
 
             while (sc.hasNextLine()) {
                 String[] parts = sc.nextLine().split(",");
@@ -241,7 +315,8 @@ public class AddressBook {
             FileWriter fw = new FileWriter("exported_contacts.csv");
             fw.write("Name,Phone,Email,CreatedAt,IsFavorite,Birthday\n");
             for (Contact c : contacts) {
-                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + "," + c.birthday + "\n");
+                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + ","
+                        + c.birthday + "\n");
             }
             fw.close();
             System.out.println("✅ Exported to exported_contacts.csv.");
@@ -257,7 +332,8 @@ public class AddressBook {
             Scanner sc = new Scanner(in);
             FileWriter fw = new FileWriter(out);
 
-            while (sc.hasNextLine()) fw.write(sc.nextLine() + "\n");
+            while (sc.hasNextLine())
+                fw.write(sc.nextLine() + "\n");
 
             sc.close();
             fw.close();
@@ -279,7 +355,8 @@ public class AddressBook {
             Scanner sc = new Scanner(in);
             FileWriter fw = new FileWriter(out);
 
-            while (sc.hasNextLine()) fw.write(sc.nextLine() + "\n");
+            while (sc.hasNextLine())
+                fw.write(sc.nextLine() + "\n");
 
             sc.close();
             fw.close();
@@ -294,7 +371,8 @@ public class AddressBook {
     static void loadContacts() {
         try {
             File file = new File(FILE_NAME);
-            if (!file.exists()) return;
+            if (!file.exists())
+                return;
 
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
@@ -316,7 +394,8 @@ public class AddressBook {
         try {
             FileWriter fw = new FileWriter(FILE_NAME);
             for (Contact c : contacts) {
-                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + "," + c.birthday + "\n");
+                fw.write(c.name + "," + c.phone + "," + c.email + "," + c.createdAt + "," + c.isFavorite + ","
+                        + c.birthday + "\n");
             }
             fw.close();
         } catch (IOException e) {
