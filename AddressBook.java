@@ -34,6 +34,7 @@ public class AddressBook {
             System.out.println("12. List Favorite Contacts");
             System.out.println("13. Upcoming Birthdays");
             System.out.println("14. Change Password");
+            System.out.println("15. View Activity Logs");
 
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
@@ -67,6 +68,8 @@ public class AddressBook {
                 listUpcomingBirthdays();
             else if (choice == 14)
                 changePassword();
+            else if (choice == 15)
+                viewLogs();
             else
                 System.out.println("❌ Invalid option.");
         }
@@ -120,6 +123,17 @@ public class AddressBook {
         }
     }
 
+    static void logActivity(String action, String details) {
+        try {
+            FileWriter fw = new FileWriter("activity_log.txt", true);
+            String timestamp = LocalDateTime.now().toString();
+            fw.write(timestamp + " - " + action + " - " + details + "\n");
+            fw.close();
+        } catch (IOException e) {
+            System.out.println("⚠️ Error writing to log: " + e.getMessage());
+        }
+    }
+
     static void changePassword() {
         try {
             File file = new File("password.txt");
@@ -156,6 +170,7 @@ public class AddressBook {
             fw.write(newHash);
             fw.close();
             System.out.println("✅ Password changed successfully!");
+            logActivity("Change Password", "Password changed by user");
         } catch (IOException e) {
             System.out.println("⚠️ Error changing password: " + e.getMessage());
         }
@@ -173,6 +188,7 @@ public class AddressBook {
 
         contacts.add(new Contact(name, phone, email, birthday));
         saveAllContacts();
+        logActivity("Add Contact", name);
         System.out.println("✅ Contact added.");
     }
 
@@ -190,6 +206,7 @@ public class AddressBook {
         boolean removed = contacts.removeIf(c -> c.name.equalsIgnoreCase(name));
         if (removed) {
             saveAllContacts();
+            logActivity("Delete Contact", name);
             System.out.println("✅ Contact deleted.");
         } else
             System.out.println("❌ Contact not found.");
@@ -231,6 +248,7 @@ public class AddressBook {
                     c.birthday = LocalDate.parse(bday);
 
                 saveAllContacts();
+                logActivity("Edit Contact", name);
                 System.out.println("✅ Contact updated.");
                 return;
             }
@@ -245,6 +263,7 @@ public class AddressBook {
             if (c.name.equalsIgnoreCase(name)) {
                 c.isFavorite = !c.isFavorite;
                 saveAllContacts();
+                logActivity("Toggle Favorite", name);
                 System.out.println("✅ Favorite status toggled.");
                 return;
             }
@@ -304,6 +323,7 @@ public class AddressBook {
             }
             sc.close();
             saveAllContacts();
+            logActivity("Import Contacts", "import_contacts.csv");
             System.out.println("✅ Contacts imported.");
         } catch (Exception e) {
             System.out.println("⚠️ Import failed: " + e.getMessage());
@@ -319,6 +339,7 @@ public class AddressBook {
                         + c.birthday + "\n");
             }
             fw.close();
+            logActivity("Export Contacts", "exported_contacts.csv");
             System.out.println("✅ Exported to exported_contacts.csv.");
         } catch (IOException e) {
             System.out.println("❌ Export error: " + e.getMessage());
@@ -337,6 +358,7 @@ public class AddressBook {
 
             sc.close();
             fw.close();
+            logActivity("Backup Contacts", "contacts_backup.txt");
             System.out.println("✅ Backup created.");
         } catch (IOException e) {
             System.out.println("⚠️ Backup failed: " + e.getMessage());
@@ -362,9 +384,27 @@ public class AddressBook {
             fw.close();
             contacts.clear();
             loadContacts();
+            logActivity("Restore Contacts", "contacts_backup.txt");
             System.out.println("✅ Restored from backup.");
         } catch (IOException e) {
             System.out.println("⚠️ Restore failed: " + e.getMessage());
+        }
+    }
+
+    static void viewLogs() {
+        try {
+            File file = new File("activity_log.txt");
+            if (!file.exists()) {
+                System.out.println("No logs yet.");
+                return;
+            }
+            Scanner sc = new Scanner(file);
+            while (sc.hasNextLine()) {
+                System.out.println(sc.nextLine());
+            }
+            sc.close();
+        } catch (IOException e) {
+            System.out.println("⚠️ Error reading logs: " + e.getMessage());
         }
     }
 
