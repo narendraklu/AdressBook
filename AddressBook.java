@@ -33,7 +33,6 @@ public class AddressBook {
             System.out.println("11. Mark/Unmark Favorite");
             System.out.println("12. List Favorite Contacts");
             System.out.println("13. Upcoming Birthdays");
-            System.out.println("14. Change Password");
 
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
@@ -52,7 +51,6 @@ public class AddressBook {
             else if (choice == 11) toggleFavorite();
             else if (choice == 12) listFavorites();
             else if (choice == 13) listUpcomingBirthdays();
-            else if (choice == 14) changePassword();
             else System.out.println("❌ Invalid option.");
         }
     }
@@ -79,13 +77,7 @@ public class AddressBook {
             String entered = scanner.nextLine();
             String enteredHash = hashPassword(entered);
 
-            if (storedHash.equals(enteredHash)) {
-                System.out.println("✅ Access granted.");
-                return true;
-            } else {
-                System.out.println("❌ Incorrect password!");
-                return false;
-            }
+            return storedHash.equals(enteredHash);
         } catch (IOException e) {
             System.out.println("⚠️ Error: " + e.getMessage());
             return false;
@@ -102,47 +94,6 @@ public class AddressBook {
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    static void changePassword() {
-        try {
-            File file = new File("password.txt");
-            if (!file.exists()) {
-                System.out.println("⚠️ Password file missing. Cannot change password.");
-                return;
-            }
-
-            Scanner fileScanner = new Scanner(file);
-            String storedHash = fileScanner.nextLine();
-            fileScanner.close();
-
-            System.out.print("Enter current password: ");
-            String oldPass = scanner.nextLine();
-            String oldHash = hashPassword(oldPass);
-
-            if (!storedHash.equals(oldHash)) {
-                System.out.println("❌ Incorrect current password. Password not changed.");
-                return;
-            }
-
-            System.out.print("Enter new password: ");
-            String newPass = scanner.nextLine();
-            System.out.print("Confirm new password: ");
-            String confirmPass = scanner.nextLine();
-
-            if (!newPass.equals(confirmPass)) {
-                System.out.println("❌ Passwords do not match. Try again.");
-                return;
-            }
-
-            String newHash = hashPassword(newPass);
-            FileWriter fw = new FileWriter(file, false);
-            fw.write(newHash);
-            fw.close();
-            System.out.println("✅ Password changed successfully!");
-        } catch (IOException e) {
-            System.out.println("⚠️ Error changing password: " + e.getMessage());
         }
     }
 
@@ -266,7 +217,7 @@ public class AddressBook {
 
         try {
             Scanner sc = new Scanner(file);
-            if (sc.hasNextLine()) sc.nextLine();
+            if (sc.hasNextLine()) sc.nextLine(); // skip header
 
             while (sc.hasNextLine()) {
                 String[] parts = sc.nextLine().split(",");
